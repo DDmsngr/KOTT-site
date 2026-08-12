@@ -746,6 +746,138 @@ footer{
 .f-links a:hover{color:var(--bl)}
 .f-copy{font-size:.72rem;color:#5a4a40}
 
+/* ─── Deep-dive: card anatomy ──────────────────────────────────────── */
+.deep-dive{
+  padding:6rem 2rem 5rem;
+  background:var(--cream);
+  position:relative;overflow:hidden;
+}
+.deep-dive::before{
+  content:'';position:absolute;top:20%;right:-10%;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(196,168,130,.12) 0%,transparent 60%);
+  pointer-events:none;filter:blur(60px);
+}
+.dd-inner{
+  max-width:1180px;margin:0 auto;
+  display:grid;grid-template-columns:0.9fr 1fr;
+  gap:5rem;align-items:center;position:relative;z-index:1;
+}
+.dd-visual{display:flex;justify-content:center}
+.dd-phone{
+  width:280px;height:560px;
+  border-radius:40px;overflow:hidden;
+  box-shadow:0 40px 80px -10px rgba(61,43,31,.35),0 12px 28px -8px rgba(61,43,31,.2);
+  background:var(--bd);position:relative;
+  transform:perspective(1400px) rotateY(6deg) rotateX(1deg);
+  transition:transform .6s cubic-bezier(.2,.7,.2,1);
+}
+.dd-phone:hover{transform:perspective(1400px) rotateY(3deg) rotateX(0)}
+.dd-phone::before{
+  content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:80px;height:20px;background:#0a0705;border-radius:12px;z-index:3;
+}
+.dd-phone img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.dd-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.8rem,3.6vw,2.6rem);
+  font-weight:500;color:var(--bd);
+  margin-bottom:1rem;line-height:1.2;letter-spacing:-.005em;
+}
+.dd-sub{
+  font-size:1rem;color:var(--muted);
+  margin-bottom:2rem;line-height:1.8;font-weight:300;
+}
+.dd-list{list-style:none;display:flex;flex-direction:column}
+.dd-item{
+  display:grid;grid-template-columns:200px 1fr;gap:1.5rem;
+  padding:1.05rem 0;
+  border-top:1px solid var(--bp);
+  align-items:baseline;
+}
+.dd-item:last-child{border-bottom:1px solid var(--bp)}
+.dd-key{
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);
+}
+.dd-val{font-size:.93rem;color:var(--text);line-height:1.7;font-weight:400}
+
+/* ─── Status flow ──────────────────────────────────────────────────── */
+.status-flow{
+  padding:5rem 2rem;
+  background:var(--warm);
+  position:relative;
+}
+.sf-inner{max-width:900px;margin:0 auto;text-align:center}
+.sf-grid{
+  display:flex;flex-wrap:wrap;gap:.8rem;
+  justify-content:center;margin:2.5rem 0 2rem;
+}
+.sf-tag{
+  display:inline-flex;align-items:center;gap:.6rem;
+  background:white;border:1px solid var(--bp);
+  padding:.65rem 1.1rem;border-radius:24px;
+  font-size:.88rem;color:var(--bd);font-weight:500;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease;
+}
+.sf-tag:hover{transform:translateY(-3px);box-shadow:0 10px 24px -8px rgba(61,43,31,.15)}
+.sf-dot{
+  width:8px;height:8px;border-radius:50%;
+  flex-shrink:0;
+}
+.sf-note{
+  max-width:640px;margin:1.5rem auto 0;
+  font-size:.92rem;color:var(--muted);
+  line-height:1.85;font-weight:300;
+  font-style:italic;
+}
+
+/* ─── Triple docs ──────────────────────────────────────────────────── */
+.triple-docs{
+  padding:6rem 2rem;
+  background:var(--cream);
+  position:relative;
+}
+.td-inner{max-width:1080px;margin:0 auto}
+.td-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1.25rem;margin-top:3.5rem;
+}
+.td-card{
+  background:white;border-radius:18px;
+  padding:2.2rem 1.85rem 1.9rem;
+  border:1px solid var(--bp);
+  transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .35s ease;
+  position:relative;overflow:hidden;
+}
+.td-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--bl),transparent);
+  transform:scaleX(0);transform-origin:center;transition:transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.td-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 20px 50px -10px rgba(61,43,31,.16);
+  border-color:var(--bl);
+}
+.td-card:hover::before{transform:scaleX(1)}
+.td-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:var(--warm);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1.35rem;
+  transition:background .35s ease,color .35s ease;
+}
+.td-card:hover .td-icon{background:var(--bd);color:var(--bl)}
+.td-icon svg{width:26px;height:26px}
+.td-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.42rem;font-weight:600;
+  color:var(--bd);margin-bottom:.6rem;line-height:1.2;
+}
+.td-desc{font-size:.9rem;color:var(--muted);line-height:1.78;font-weight:300}
+
 /* ─── Fade-up on scroll ────────────────────────────────────────────── */
 .fade-up{opacity:0;transform:translateY(32px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
 .fade-up.in{opacity:1;transform:translateY(0)}
@@ -770,6 +902,13 @@ footer{
   .blob-1{width:340px;height:340px}
   .blob-2{width:280px;height:280px}
   .video-frame{transform:none}
+  .dd-inner{grid-template-columns:1fr;gap:3rem}
+  .dd-phone{transform:none}
+  .dd-item{grid-template-columns:1fr;gap:.4rem;padding:1rem 0}
+  .dd-key{margin-bottom:.3rem}
+  .td-grid{grid-template-columns:1fr}
+  .sf-grid{gap:.6rem}
+  .sf-tag{padding:.55rem .9rem;font-size:.82rem}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -812,7 +951,7 @@ footer{
     <div class="hero-text">
       <p class="eyebrow">Для художников и авторов</p>
       <h1 data-split>Каждая работа заслуживает <em>своей истории</em></h1>
-      <p class="hero-sub fade-up">КОТТ — первое российское приложение для профессионального учёта произведений искусства. Реестр, выставки, продажи, документы — всё в кармане, работает без интернета.</p>
+      <p class="hero-sub fade-up">КОТТ — первое российское приложение для профессионального учёта произведений искусства. Реестр с уникальными номерами, история статусов, выставки, продажи, три типа юридических документов в один клик. Всё в кармане, работает без интернета.</p>
       <div class="hero-actions fade-up">
         <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="btn btn-dark" data-magnetic>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.39.07 2.36.73 3.18.73.83 0 2.38-.9 4.01-.77 1.68.16 2.95.81 3.77 2.08-3.47 2.04-2.9 6.49.5 7.77-.7 1.36-1.61 2.7-3.46 3.07zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
@@ -904,15 +1043,15 @@ footer{
       <div class="feat-icon">
         <svg viewBox="0 0 24 24" class="icon-line"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="7" y1="13.5" x2="17" y2="13.5"/><line x1="7" y1="17" x2="14" y2="17"/><circle cx="18" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg>
       </div>
-      <h3 class="feat-title">Реестр с уникальными номерами</h3>
-      <p class="feat-desc">Каждой работе присваивается номер КОТТ-2026-001. Фото, техника, материал, размеры, концепция, история статусов — всё в одной карточке.</p>
+      <h3 class="feat-title">Уникальный номер для каждой работы</h3>
+      <p class="feat-desc">Номер вида <span style="font-family:monospace;color:var(--bd)">КОТТ-W4YQ-2026-001</span> с личным префиксом художника — гарантированно неповторимый в мире. Плюс собственный номер, если он у вас уже есть.</p>
     </div>
     <div class="feat fade-up">
       <div class="feat-icon">
         <svg viewBox="0 0 24 24" class="icon-line"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="15" y2="12"/><circle cx="16.5" cy="17" r="2.3"/><path d="M14.5 15.5l4 3"/></svg>
       </div>
-      <h3 class="feat-title">Документы за 10 секунд</h3>
-      <p class="feat-desc">Сертификат подлинности, договор купли-продажи, акт передачи — генерируются автоматически. Шаблоны редактируются под себя.</p>
+      <h3 class="feat-title">Три документа за 10 секунд</h3>
+      <p class="feat-desc">Сертификат подлинности с QR, договор купли-продажи, акт передачи. Шаблоны редактируются под себя, подпись ставится один раз — потом автоматически во все документы.</p>
     </div>
     <div class="feat fade-up">
       <div class="feat-icon">
@@ -932,8 +1071,8 @@ footer{
       <div class="feat-icon">
         <svg viewBox="0 0 24 24" class="icon-line"><circle cx="12" cy="12" r="9"/><path d="M9.5 8.5h4a2.5 2.5 0 0 1 0 5H9.5V8m0 3h4.5m-2.5 0v5.5"/></svg>
       </div>
-      <h3 class="feat-title">Учёт продаж и покупателей</h3>
-      <p class="feat-desc">Кто купил, когда, за сколько, где хранится. Статус работы меняется автоматически. История сделки всегда под рукой.</p>
+      <h3 class="feat-title">Продажи, подарки, коллекционеры</h3>
+      <p class="feat-desc">Кто купил — коллекционер, галерея, музей или частное лицо. Место хранения после сделки. Договор и скан подписанного — отдельно. Подарки фиксируются так же, как продажи.</p>
     </div>
     <div class="feat fade-up">
       <div class="feat-icon">
@@ -941,6 +1080,79 @@ footer{
       </div>
       <h3 class="feat-title">Ваши данные — только у вас</h3>
       <p class="feat-desc">Никакой регистрации, никаких серверов. Данные в защищённой базе на телефоне. Резервные копии включают все фотографии.</p>
+    </div>
+  </div>
+</section>
+
+<section class="deep-dive" id="details">
+  <div class="dd-inner">
+    <div class="dd-visual">
+      <div class="dd-phone">
+        <img src="screens/screen2.jpg" alt="Карточка работы в приложении КОТТ">
+      </div>
+    </div>
+    <div class="dd-content">
+      <p class="section-label fade-up" style="justify-content:flex-start">Карточка работы</p>
+      <h2 class="dd-title fade-up" data-split>Всё, что нужно знать о картине — в одном месте</h2>
+      <p class="dd-sub fade-up">Раньше это жило в трёх файлах, двух блокнотах и голове. Теперь — на одной карточке в телефоне.</p>
+      <ul class="dd-list">
+        <li class="dd-item fade-up"><span class="dd-key">Идентификация</span><span class="dd-val">системный ID + личный номер + серия + год</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Размеры</span><span class="dd-val">ширина × высота × глубина — для холста, скульптуры или инсталляции</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Техника</span><span class="dd-val">материал, техника, тираж (если это оригинал с принтами)</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Часы работы</span><span class="dd-val">сколько времени вложено — важно при оценке и продаже</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Концепция и заметки</span><span class="dd-val">описание для галерей, внутренние пометки для себя</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Публикации</span><span class="dd-val">ссылки на статьи, обзоры, интервью, где работа упоминалась</span></li>
+        <li class="dd-item fade-up"><span class="dd-key">Файлы</span><span class="dd-val">эскизы, фото процесса, скан-копии договоров — всё привязано к работе</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="status-flow">
+  <div class="sf-inner">
+    <p class="section-label fade-up">История каждой работы</p>
+    <h2 class="section-title fade-up" data-split>Семь статусов. Полная хронология.</h2>
+    <p class="section-sub fade-up">Работа не «висит в воздухе» — вы всегда знаете, где она сейчас и через что прошла. Каждое изменение статуса пишется в историю с датой и заметкой.</p>
+    <div class="sf-grid">
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#8c7060"></span>На руках</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#9b6b4a"></span>На выставке</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#4a6b4a"></span>В продаже</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#3d2b1f"></span>Продано</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#c1755a"></span>Подарено</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#8c7060"></span>Не продаётся</div>
+      <div class="sf-tag fade-up"><span class="sf-dot" style="background:#b45309"></span>Утеряно</div>
+    </div>
+    <p class="sf-note fade-up">И каждый переход — с датой, местом и заметкой. Спустя пять лет вы сможете точно сказать: «Эта работа ушла на выставку в Нижний Новгород в марте 2027, потом вернулась, потом продалась коллекционеру из СПб».</p>
+  </div>
+</section>
+
+<section class="triple-docs">
+  <div class="td-inner">
+    <p class="section-label fade-up">Юридика</p>
+    <h2 class="section-title fade-up" data-split>Три документа. Один клик.</h2>
+    <p class="section-sub fade-up">Данные художника и работы уже в системе. Подпись стоит один раз в профиле. Осталось нажать кнопку.</p>
+    <div class="td-grid">
+      <div class="td-card fade-up">
+        <div class="td-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><circle cx="16.5" cy="17" r="2.3"/><path d="M14.5 15.5l4 3"/></svg>
+        </div>
+        <h3 class="td-title">Сертификат подлинности</h3>
+        <p class="td-desc">С QR-кодом, вашей подписью и данными работы. Классический или свой стиль. Даёте покупателю — и это официальное подтверждение авторства.</p>
+      </div>
+      <div class="td-card fade-up">
+        <div class="td-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><path d="M5 4h14v16H5z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+        </div>
+        <h3 class="td-title">Договор купли-продажи</h3>
+        <p class="td-desc">Автоматически подставляются данные покупателя, работы и цена. Шаблон редактируется под ваши условия. Скан подписанного вернётся в карточку продажи.</p>
+      </div>
+      <div class="td-card fade-up">
+        <div class="td-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l2 2 3-4"/></svg>
+        </div>
+        <h3 class="td-title">Акт передачи</h3>
+        <p class="td-desc">Для галереи, куратора, курьера — когда работа физически уходит из мастерской. Дата, стороны, состояние работы. Один PDF, готов к отправке в мессенджер.</p>
+      </div>
     </div>
   </div>
 </section>
