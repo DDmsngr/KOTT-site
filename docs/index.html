@@ -858,7 +858,7 @@ footer{
 
 <div class="gradient-to-dark"></div>
 
-<section class="problem">
+<section class="problem" id="problem">
   <div class="problem-inner">
     <h2 class="prob-title fade-up" data-split>Художник создаёт — но где всё это хранится?</h2>
     <p class="prob-sub fade-up">Работы разбросаны по выставкам и мастерским. Продажи — в переписках. Договоры — в стопке бумаг. Фото вперемешку в галерее. Знакомо?</p>
@@ -1261,32 +1261,25 @@ footer{
   });
 
   /* ─── Scroll-driven carousel (GSAP ScrollTrigger, desktop only) ──── */
+  // Phone stays in its flex slot; screens change with scroll while hero is visible.
+  // Autoplay always runs — scroll simply overrides it while the trigger is active.
+  resetAuto();
+
   if(!isMobile && !reduce && window.gsap && window.ScrollTrigger){
-    // Pin the phone through hero → problem → features
-    ScrollTrigger.create({
-      trigger: '#hero',
-      start: 'top top+=80',
-      endTrigger: '#features',
-      end: 'bottom bottom-=100',
-      pin: '#phone-pin',
-      pinSpacing: false,
-      onEnter: () => clearInterval(autoTimer),
-      onLeaveBack: () => resetAuto(),
-      onLeave: () => resetAuto(),
-    });
-    // Change screens by scroll progress
     ScrollTrigger.create({
       trigger: '#hero',
       start: 'top top',
-      endTrigger: '#features',
-      end: 'bottom bottom',
+      endTrigger: '#problem',
+      end: 'bottom center',
+      onEnter: () => clearInterval(autoTimer),
+      onLeave: () => resetAuto(),
+      onEnterBack: () => clearInterval(autoTimer),
+      onLeaveBack: () => resetAuto(),
       onUpdate: self => {
         const idx = Math.min(Math.floor(self.progress * total), total - 1);
         if(idx !== cur){ goTo(idx); }
       }
     });
-  } else {
-    resetAuto();
   }
 
   /* ─── How-it-works sticky scroll (step highlight) ────────────────── */
