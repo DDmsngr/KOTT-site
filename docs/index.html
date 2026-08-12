@@ -5,283 +5,1028 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>КОТТ — Приложение для художников</title>
 <meta name="description" content="Учёт работ, выставок и продаж. Сертификаты подлинности, договоры и акты — в два касания. Первые 30 работ бесплатно.">
+<meta property="og:title" content="КОТТ — Приложение для художников">
+<meta property="og:description" content="Реестр, выставки, продажи, документы — в одном приложении. Работает офлайн.">
+<meta property="og:image" content="screens/screen1.jpg">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Mulish:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--cream:#faf7f2;--warm:#f5f0e8;--bd:#3d2b1f;--bm:#6b4c3b;--bl:#c4a882;--bp:#e8ddd0;--text:#2a1f18;--muted:#8c7060;--accent:#9b6b4a;--green:#4a6b4a}
+:root{
+  --cream:#faf7f2;
+  --warm:#f5f0e8;
+  --bd:#3d2b1f;       /* brown dark */
+  --bm:#6b4c3b;       /* brown medium */
+  --bl:#c4a882;       /* brown light / gold */
+  --bp:#e8ddd0;       /* border paper */
+  --text:#2a1f18;
+  --muted:#8c7060;
+  --accent:#9b6b4a;
+  --green:#4a6b4a;
+  --terracotta:#c1755a;
+  --ochre:#d4a55c;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Mulish',sans-serif;background:var(--cream);color:var(--text);line-height:1.7;overflow-x:hidden}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(250,247,242,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--bp)}
-.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--bd);letter-spacing:.08em;text-decoration:none}
+html{scroll-behavior:auto} /* Lenis takes over */
+body{
+  font-family:'Mulish',sans-serif;
+  background:var(--cream);
+  color:var(--text);
+  line-height:1.7;
+  overflow-x:hidden;
+  cursor:auto;
+}
+
+/* ─── Custom cursor (desktop only) ──────────────────────────────────── */
+.cursor-ring,.cursor-dot{
+  position:fixed;top:0;left:0;pointer-events:none;z-index:9999;
+  border-radius:50%;
+  mix-blend-mode:normal;
+  will-change:transform;
+  opacity:0;
+  transition:opacity .3s ease,width .3s ease,height .3s ease,background .3s ease,border-color .3s ease;
+}
+.cursor-ring{
+  width:36px;height:36px;
+  border:1.5px solid rgba(61,43,31,.35);
+  transform:translate(-50%,-50%);
+}
+.cursor-dot{
+  width:6px;height:6px;
+  background:var(--bd);
+  transform:translate(-50%,-50%);
+}
+body.cursor-ready .cursor-ring,body.cursor-ready .cursor-dot{opacity:1}
+body.cursor-swipe .cursor-ring{
+  width:88px;height:88px;
+  border-color:var(--bl);
+  background:rgba(61,43,31,.85);
+  color:var(--cream);
+}
+body.cursor-swipe .cursor-dot{opacity:0}
+.cursor-ring::after{
+  content:'';
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--cream);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  opacity:0;transition:opacity .25s ease;
+}
+body.cursor-swipe .cursor-ring::after{content:'Свайп';opacity:1}
+body.cursor-link .cursor-ring{width:56px;height:56px;border-color:var(--bl);background:rgba(196,168,130,.12)}
+
+/* ─── Brush trail canvas ───────────────────────────────────────────── */
+#brush-canvas{
+  position:fixed;top:0;left:0;width:100vw;height:100vh;
+  pointer-events:none;z-index:9998;
+  opacity:.55;
+}
+
+/* ─── Nav ──────────────────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:1.25rem 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(250,247,242,0.86);
+  backdrop-filter:blur(16px) saturate(1.2);
+  -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  border-bottom:1px solid rgba(232,221,208,.6);
+  transition:padding .3s ease,background .3s ease;
+}
+nav.compact{padding:.8rem 2rem;background:rgba(250,247,242,0.95)}
+.nav-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;font-weight:600;color:var(--bd);
+  letter-spacing:.1em;text-decoration:none;
+  display:flex;align-items:center;gap:.5rem;
+}
+.nav-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.nav-logo:hover .nav-logo-dot{transform:scale(1.6)}
 .nav-links{display:flex;gap:2rem;list-style:none}
-.nav-links a{font-size:.85rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color .2s}
+.nav-links a{
+  position:relative;
+  font-size:.85rem;font-weight:500;color:var(--muted);
+  text-decoration:none;transition:color .2s;
+  padding:.25rem 0;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-2px;left:0;
+  width:0;height:1px;background:var(--bd);
+  transition:width .35s cubic-bezier(.4,0,.2,1);
+}
 .nav-links a:hover{color:var(--bd)}
-.nav-cta{background:var(--bd)!important;color:var(--cream)!important;padding:.5rem 1.25rem;border-radius:6px;font-weight:600!important}
-.hero{min-height:100vh;display:flex;align-items:center;padding:7rem 2rem 4rem;max-width:1200px;margin:0 auto;gap:5rem}
-.hero-text{flex:1}
-.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:1.25rem}
-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,5.5vw,4.2rem);font-weight:500;line-height:1.12;color:var(--bd);margin-bottom:1.5rem}
-h1 em{font-style:italic;color:var(--accent)}
-.hero-sub{font-size:1.05rem;color:var(--muted);max-width:500px;margin-bottom:2.5rem;line-height:1.85;font-weight:300}
+.nav-links a:hover::after{width:100%}
+.nav-cta{
+  background:var(--bd)!important;color:var(--cream)!important;
+  padding:.55rem 1.25rem;border-radius:6px;font-weight:600!important;
+  transition:background .25s ease,transform .25s ease!important;
+}
+.nav-cta:hover{background:var(--bm)!important;transform:translateY(-1px)}
+.nav-cta::after{display:none!important}
+
+/* ─── Hero + parallax stage ────────────────────────────────────────── */
+.hero-stage{
+  position:relative;overflow:hidden;
+  background:var(--cream);
+}
+.blob{
+  position:absolute;border-radius:50%;
+  pointer-events:none;
+  will-change:transform;
+  filter:blur(90px);
+  opacity:.42;
+}
+.blob-1{width:520px;height:520px;background:var(--terracotta);top:-120px;right:-140px}
+.blob-2{width:420px;height:420px;background:var(--ochre);bottom:-100px;left:-80px;opacity:.35}
+.blob-3{width:300px;height:300px;background:var(--accent);top:40%;left:35%;opacity:.22;filter:blur(120px)}
+.brushstroke{
+  position:absolute;top:12%;right:8%;width:340px;height:120px;
+  opacity:.14;pointer-events:none;
+  color:var(--bd);
+}
+.brushstroke svg{width:100%;height:100%;display:block}
+.paper-texture{
+  position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+
+.hero{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:8rem 2rem 5rem;
+  max-width:1200px;margin:0 auto;
+  gap:5rem;
+}
+.hero-text{flex:1;position:relative}
+.eyebrow{
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:1.5rem;
+  display:inline-flex;align-items:center;gap:.6rem;
+}
+.eyebrow::before{
+  content:'';width:28px;height:1px;background:var(--accent);
+}
+h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.6rem,5.8vw,4.6rem);
+  font-weight:500;line-height:1.06;
+  color:var(--bd);margin-bottom:1.75rem;
+  letter-spacing:-.01em;
+}
+h1 em{
+  font-style:italic;
+  background:linear-gradient(120deg,var(--accent) 0%,var(--terracotta) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  position:relative;
+}
+/* Text reveal helper */
+.w-wrap{display:inline-block;overflow:hidden;vertical-align:baseline;line-height:1.1;padding:.02em 0;margin:-.02em 0}
+.w-inner{display:inline-block;transform:translateY(115%);transition:transform 1s cubic-bezier(.2,.7,.2,1)}
+.revealed .w-inner{transform:translateY(0)}
+
+.hero-sub{
+  font-size:1.08rem;color:var(--muted);
+  max-width:500px;margin-bottom:2.5rem;
+  line-height:1.85;font-weight:300;
+}
 .hero-actions{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.9rem 1.75rem;border-radius:8px;font-weight:600;font-size:.95rem;text-decoration:none;transition:all .2s}
-.btn-dark{background:var(--bd);color:var(--cream)}
-.btn-dark:hover{background:var(--bm);transform:translateY(-1px)}
-.btn-outline{color:var(--bm);border:1.5px solid var(--bp)}
+.btn{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:1rem 1.85rem;border-radius:8px;
+  font-weight:600;font-size:.93rem;
+  text-decoration:none;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),background .25s ease,box-shadow .25s ease;
+  will-change:transform;
+  position:relative;overflow:hidden;
+}
+.btn-dark{background:var(--bd);color:var(--cream);box-shadow:0 10px 24px -8px rgba(61,43,31,.35)}
+.btn-dark:hover{background:var(--bm);box-shadow:0 16px 36px -8px rgba(61,43,31,.5)}
+.btn-dark::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.12),transparent);
+  transform:translateX(-100%);transition:transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.btn-dark:hover::before{transform:translateX(100%)}
+.btn-outline{color:var(--bm);border:1.5px solid var(--bp);background:transparent}
 .btn-outline:hover{border-color:var(--bl);background:var(--warm)}
-.hero-note{font-size:.8rem;color:var(--muted);margin-top:1rem}
-.hero-visual{flex:0 0 280px}
-.carousel-wrap{position:relative;width:280px;margin:0 auto}
-.carousel-frame{width:280px;height:560px;border-radius:36px;overflow:hidden;box-shadow:0 40px 80px rgba(61,43,31,.28),0 8px 24px rgba(61,43,31,.14);position:relative;background:var(--bd);cursor:grab;user-select:none}
+.hero-note{font-size:.8rem;color:var(--muted);margin-top:1.25rem;line-height:1.7}
+
+.marquee{
+  margin-top:2rem;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.marquee-track{
+  display:flex;gap:2.4rem;width:max-content;
+  animation:marquee 34s linear infinite;
+  font-size:.73rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;
+}
+.marquee-track span{display:inline-flex;align-items:center;gap:2.4rem}
+.marquee-track span::after{content:'·';color:var(--bl)}
+@keyframes marquee{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+/* ─── Sticky phone frame ───────────────────────────────────────────── */
+.hero-visual{
+  flex:0 0 300px;
+  position:relative;
+}
+.phone-pin{
+  position:relative;
+  width:300px;
+}
+.carousel-frame{
+  width:300px;height:600px;
+  border-radius:44px;overflow:hidden;
+  box-shadow:
+    0 60px 100px -20px rgba(61,43,31,.45),
+    0 20px 40px -10px rgba(61,43,31,.28),
+    inset 0 0 0 8px rgba(61,43,31,.9),
+    inset 0 0 0 10px rgba(196,168,130,.15);
+  position:relative;background:var(--bd);
+  cursor:grab;user-select:none;
+  transform:perspective(1400px) rotateY(-4deg) rotateX(2deg);
+  transition:transform .6s cubic-bezier(.2,.7,.2,1);
+}
+.carousel-frame:hover{transform:perspective(1400px) rotateY(-2deg) rotateX(1deg) translateY(-4px)}
 .carousel-frame:active{cursor:grabbing}
-.carousel-inner{display:flex;height:100%;transition:transform .4s cubic-bezier(.25,.46,.45,.94)}
+.carousel-frame::before{
+  content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:88px;height:22px;background:#0a0705;border-radius:14px;z-index:3;
+}
+.carousel-inner{display:flex;height:100%;transition:transform .55s cubic-bezier(.25,.46,.45,.94)}
 .c-slide{min-width:100%;height:100%;flex-shrink:0}
 .c-slide img{width:100%;height:100%;object-fit:cover;object-position:top;pointer-events:none}
-.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:1.25rem}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--bp);cursor:pointer;transition:all .2s;border:none;padding:0}
-.dot.active{background:var(--bd);transform:scale(1.35)}
-.c-labels{text-align:center;margin-top:.6rem}
-.c-label{font-size:.73rem;color:var(--muted);display:none}
-.c-label.active{display:block}
-.problem{background:var(--bd);padding:5rem 2rem}
-.problem-inner{max-width:900px;margin:0 auto}
-.prob-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:500;color:var(--cream);text-align:center;margin-bottom:1.25rem;line-height:1.25}
-.prob-sub{font-size:1rem;color:var(--bl);text-align:center;max-width:580px;margin:0 auto 3rem;line-height:1.85;font-weight:300}
-.pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
-.pain-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.25rem 1.5rem}
-.pain-icon{font-size:1.5rem;margin-bottom:.75rem}
-.pain-text{font-size:.88rem;color:rgba(250,247,242,.7);line-height:1.7}
-.pain-text strong{color:var(--cream);font-weight:500}
-section.features{padding:5rem 2rem;max-width:1000px;margin:0 auto}
-.section-label{font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:.75rem}
-h2.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:500;text-align:center;color:var(--bd);margin-bottom:.9rem;line-height:1.25}
-.section-sub{font-size:.93rem;color:var(--muted);text-align:center;max-width:560px;margin:0 auto 3.5rem;line-height:1.85;font-weight:300}
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem}
-.feat{background:white;border-radius:16px;padding:1.75rem;border:1px solid var(--bp);transition:transform .2s,box-shadow .2s}
-.feat:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(61,43,31,.09)}
-.feat-icon{width:44px;height:44px;border-radius:10px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:1rem}
-.feat-title{font-family:'Cormorant Garamond',serif;font-size:1.22rem;font-weight:600;color:var(--bd);margin-bottom:.4rem}
-.feat-desc{font-size:.87rem;color:var(--muted);line-height:1.75;font-weight:300}
-.how{background:var(--warm);padding:5rem 2rem}
-.how-inner{max-width:860px;margin:0 auto}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2rem;margin-top:3rem}
-.step{text-align:center}
-.step-num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:600;color:var(--bp);line-height:1;margin-bottom:.75rem}
-.step-title{font-weight:600;font-size:.93rem;color:var(--bd);margin-bottom:.4rem}
-.step-desc{font-size:.83rem;color:var(--muted);line-height:1.7;font-weight:300}
-.roadmap{padding:5rem 2rem;max-width:900px;margin:0 auto}
-.rm-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:3rem}
-.rm-card{background:white;border-radius:14px;padding:1.5rem;border:1px solid var(--bp)}
-.rm-card.coming{border-style:dashed;background:transparent;opacity:.7}
-.rm-tag{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:.75rem}
+
+.carousel-dots{display:flex;justify-content:center;gap:6px;margin-top:1.5rem}
+.dot{
+  width:22px;height:3px;border-radius:3px;
+  background:var(--bp);cursor:pointer;
+  transition:all .35s cubic-bezier(.2,.7,.2,1);
+  border:none;padding:0;
+}
+.dot.active{background:var(--bd);width:38px}
+
+.c-labels{text-align:center;margin-top:.7rem;min-height:1.3em}
+.c-label{
+  font-size:.72rem;color:var(--muted);
+  letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  display:none;
+}
+.c-label.active{display:block;animation:fadein .5s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Section-transition gradients ─────────────────────────────────── */
+.gradient-to-dark{
+  height:100px;
+  background:linear-gradient(180deg,var(--cream) 0%,var(--warm) 40%,#d6c9b7 80%,var(--bd) 100%);
+}
+.gradient-to-cream{
+  height:100px;
+  background:linear-gradient(180deg,var(--bd) 0%,#5a3e2b 30%,#a68865 65%,var(--warm) 90%,var(--cream) 100%);
+}
+.gradient-warm-to-cream{
+  height:60px;
+  background:linear-gradient(180deg,var(--warm) 0%,var(--cream) 100%);
+}
+.gradient-cream-to-warm{
+  height:60px;
+  background:linear-gradient(180deg,var(--cream) 0%,var(--warm) 100%);
+}
+
+/* ─── Problem section ──────────────────────────────────────────────── */
+.problem{
+  background:var(--bd);
+  padding:6rem 2rem 5rem;
+  position:relative;overflow:hidden;
+}
+.problem::before{
+  content:'';position:absolute;top:-40%;left:-20%;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(196,168,130,.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.problem-inner{max-width:900px;margin:0 auto;position:relative;z-index:1}
+.prob-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.9rem,4.2vw,3rem);
+  font-weight:500;color:var(--cream);
+  text-align:center;margin-bottom:1.25rem;line-height:1.2;
+  letter-spacing:-.005em;
+}
+.prob-sub{
+  font-size:1rem;color:var(--bl);text-align:center;
+  max-width:580px;margin:0 auto 3.5rem;
+  line-height:1.85;font-weight:300;
+}
+.pain-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1.1rem;
+}
+.pain-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(196,168,130,.14);
+  border-radius:14px;padding:1.5rem 1.5rem 1.4rem;
+  transition:background .35s ease,border-color .35s ease,transform .35s cubic-bezier(.2,.7,.2,1);
+}
+.pain-card:hover{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(196,168,130,.3);
+  transform:translateY(-4px);
+}
+.pain-icon{
+  width:38px;height:38px;
+  color:var(--bl);
+  margin-bottom:1rem;
+}
+.pain-icon svg{width:100%;height:100%}
+.pain-text{font-size:.9rem;color:rgba(250,247,242,.7);line-height:1.75}
+.pain-text strong{color:var(--cream);font-weight:500;display:block;margin-bottom:.35rem}
+
+/* ─── Line-icon base ───────────────────────────────────────────────── */
+.icon-line{
+  stroke:currentColor;stroke-width:1.5;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+
+/* ─── Features ─────────────────────────────────────────────────────── */
+section.features{
+  padding:6rem 2rem;
+  max-width:1080px;margin:0 auto;
+  position:relative;
+}
+.section-label{
+  font-size:.72rem;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--accent);
+  text-align:center;margin-bottom:.75rem;
+  display:flex;align-items:center;justify-content:center;gap:.7rem;
+}
+.section-label::before,.section-label::after{
+  content:'';width:24px;height:1px;background:var(--accent);opacity:.5;
+}
+h2.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.9rem,4.2vw,3rem);
+  font-weight:500;text-align:center;
+  color:var(--bd);margin-bottom:.9rem;line-height:1.2;
+  letter-spacing:-.005em;
+}
+.section-sub{
+  font-size:.95rem;color:var(--muted);
+  text-align:center;max-width:580px;
+  margin:0 auto 4rem;line-height:1.85;font-weight:300;
+}
+.feat-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.25rem;
+}
+.feat{
+  background:white;border-radius:18px;
+  padding:2rem 1.85rem 1.85rem;
+  border:1px solid var(--bp);
+  transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .35s ease;
+  position:relative;overflow:hidden;
+}
+.feat::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(196,168,130,.15),transparent 60%);
+  opacity:0;transition:opacity .4s ease;pointer-events:none;
+}
+.feat:hover{
+  transform:translateY(-5px);
+  box-shadow:0 20px 50px -10px rgba(61,43,31,.16);
+  border-color:var(--bl);
+}
+.feat:hover::before{opacity:1}
+.feat-icon{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--warm);
+  color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1.15rem;
+  transition:background .35s ease,color .35s ease;
+}
+.feat:hover .feat-icon{background:var(--bd);color:var(--bl)}
+.feat-icon svg{width:24px;height:24px}
+.feat-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.32rem;font-weight:600;
+  color:var(--bd);margin-bottom:.5rem;line-height:1.2;
+}
+.feat-desc{font-size:.89rem;color:var(--muted);line-height:1.75;font-weight:300}
+
+/* ─── Video section ────────────────────────────────────────────────── */
+.video-section{
+  padding:5rem 2rem;
+  background:var(--bd);
+  text-align:center;position:relative;overflow:hidden;
+}
+.video-section::before{
+  content:'';position:absolute;bottom:-30%;right:-15%;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(196,168,130,.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.video-section .section-label{color:var(--bl)}
+.video-section .section-label::before,.video-section .section-label::after{background:var(--bl);opacity:.5}
+.video-section h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.9rem,4.2vw,3rem);
+  font-weight:500;color:var(--cream);
+  margin-bottom:2.5rem;line-height:1.2;
+}
+.video-frame{
+  max-width:380px;margin:0 auto;
+  border-radius:28px;overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,.5),0 12px 30px rgba(0,0,0,.3);
+  position:relative;z-index:1;
+  transform:perspective(1200px) rotateY(-3deg);
+  transition:transform .6s cubic-bezier(.2,.7,.2,1);
+}
+.video-frame:hover{transform:perspective(1200px) rotateY(0deg) translateY(-4px)}
+.video-frame video{width:100%;display:block;background:#000}
+.video-note{margin-top:1.5rem;font-size:.85rem;color:var(--bl);font-weight:300}
+
+/* ─── How it works (sticky-scroll) ─────────────────────────────────── */
+.how{
+  background:var(--warm);
+  padding:6rem 2rem;
+  position:relative;
+}
+.how-inner{max-width:1100px;margin:0 auto}
+.how-head{text-align:center;margin-bottom:3.5rem}
+.how-body{
+  display:grid;grid-template-columns:1fr 1fr;gap:5rem;
+  align-items:start;
+}
+.how-visual{position:sticky;top:20vh}
+.how-phone{
+  width:280px;height:560px;
+  border-radius:40px;overflow:hidden;
+  box-shadow:0 40px 80px -10px rgba(61,43,31,.35);
+  position:relative;background:var(--bd);
+  margin:0 auto;
+  transform:perspective(1400px) rotateY(4deg);
+}
+.how-phone::before{
+  content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:80px;height:20px;background:#0a0705;border-radius:12px;z-index:3;
+}
+.how-phone img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:top;
+  opacity:0;transition:opacity .55s ease;
+}
+.how-phone img.active{opacity:1}
+.how-steps{display:flex;flex-direction:column;gap:5rem;padding:3rem 0}
+.how-step{
+  opacity:.28;
+  transition:opacity .5s ease,transform .5s ease;
+  padding:1.25rem 0;
+  border-left:2px solid var(--bp);
+  padding-left:1.75rem;
+  transform:translateX(-8px);
+}
+.how-step.active{opacity:1;border-color:var(--accent);transform:translateX(0)}
+.how-step-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:3.5rem;font-weight:600;
+  color:var(--bp);line-height:1;margin-bottom:1rem;
+  transition:color .5s ease;
+}
+.how-step.active .how-step-num{color:var(--accent)}
+.how-step-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.55rem;font-weight:600;
+  color:var(--bd);margin-bottom:.6rem;line-height:1.25;
+}
+.how-step-desc{font-size:.95rem;color:var(--muted);line-height:1.8;font-weight:300}
+
+/* ─── Roadmap ──────────────────────────────────────────────────────── */
+.roadmap{padding:6rem 2rem;max-width:960px;margin:0 auto}
+.rm-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1.25rem;margin-top:3.5rem;
+}
+.rm-card{
+  background:white;border-radius:16px;
+  padding:1.75rem 1.65rem;
+  border:1px solid var(--bp);
+  transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .35s ease,box-shadow .35s ease;
+}
+.rm-card:hover{transform:translateY(-4px);border-color:var(--bl);box-shadow:0 12px 30px -8px rgba(61,43,31,.12)}
+.rm-card.coming{border-style:dashed;background:transparent;opacity:.85}
+.rm-tag{
+  display:inline-block;font-size:.62rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 11px;border-radius:20px;margin-bottom:.9rem;
+}
 .tag-now{background:#e8f0e8;color:#4a6b4a}
 .tag-soon{background:#fef3e2;color:#b45309}
-.rm-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--bd);margin-bottom:.4rem}
-.rm-desc{font-size:.83rem;color:var(--muted);line-height:1.65;font-weight:300}
-.endorser{background:linear-gradient(135deg,#3d2b1f 0%,#5a3e2b 100%);padding:5rem 2rem}
-.end-inner{max-width:800px;margin:0 auto;text-align:center}
-.end-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(196,168,130,.2);color:var(--bl);padding:.4rem 1rem;border-radius:20px;font-size:.73rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem}
-.end-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:500;color:var(--cream);margin-bottom:1.25rem;line-height:1.25}
-.end-sub{font-size:.98rem;color:var(--bl);max-width:540px;margin:0 auto 2rem;line-height:1.85;font-weight:300}
-.perks{display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem;margin-bottom:2.5rem}
-.perk{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);color:rgba(250,247,242,.85);padding:.5rem 1rem;border-radius:8px;font-size:.83rem}
-.end-form{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:2rem;max-width:460px;margin:0 auto}
-.end-form p{font-size:.85rem;color:var(--bl);margin-bottom:1.25rem;line-height:1.7}
-.ff{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.75rem 1rem;color:var(--cream);font-family:'Mulish',sans-serif;font-size:.88rem;margin-bottom:.75rem;outline:none;transition:border-color .2s}
+.rm-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.28rem;font-weight:600;
+  color:var(--bd);margin-bottom:.45rem;line-height:1.25;
+}
+.rm-desc{font-size:.87rem;color:var(--muted);line-height:1.72;font-weight:300}
+
+/* ─── Endorser ─────────────────────────────────────────────────────── */
+.endorser{
+  background:linear-gradient(135deg,#3d2b1f 0%,#4a352a 60%,#5a3e2b 100%);
+  padding:6rem 2rem;position:relative;overflow:hidden;
+}
+.endorser::before{
+  content:'';position:absolute;top:-30%;right:-15%;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(196,168,130,.12) 0%,transparent 65%);
+  pointer-events:none;
+}
+.endorser::after{
+  content:'';position:absolute;bottom:-30%;left:-15%;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(155,107,74,.1) 0%,transparent 60%);
+  pointer-events:none;
+}
+.end-inner{max-width:820px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.end-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(196,168,130,.16);color:var(--bl);
+  padding:.5rem 1.1rem;border-radius:20px;
+  font-size:.72rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:1.75rem;
+  border:1px solid rgba(196,168,130,.2);
+}
+.end-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.9rem,4.2vw,3rem);
+  font-weight:500;color:var(--cream);
+  margin-bottom:1.25rem;line-height:1.2;
+}
+.end-sub{
+  font-size:1rem;color:var(--bl);
+  max-width:560px;margin:0 auto 2rem;
+  line-height:1.85;font-weight:300;
+}
+.perks{display:flex;justify-content:center;flex-wrap:wrap;gap:.7rem;margin-bottom:2.5rem}
+.perk{
+  display:flex;align-items:center;gap:.5rem;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(196,168,130,.14);
+  color:rgba(250,247,242,.88);
+  padding:.55rem 1.1rem;border-radius:8px;
+  font-size:.83rem;
+  transition:background .3s ease,border-color .3s ease;
+}
+.perk:hover{background:rgba(255,255,255,.1);border-color:rgba(196,168,130,.3)}
+.perk svg{color:var(--bl);flex-shrink:0}
+
+.end-form{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(196,168,130,.18);
+  border-radius:20px;padding:2.25rem;
+  max-width:480px;margin:0 auto;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.end-form p{font-size:.88rem;color:var(--bl);margin-bottom:1.35rem;line-height:1.7}
+.ff{
+  width:100%;background:rgba(255,255,255,.06);
+  border:1px solid rgba(196,168,130,.15);
+  border-radius:10px;padding:.85rem 1rem;
+  color:var(--cream);font-family:'Mulish',sans-serif;
+  font-size:.9rem;margin-bottom:.75rem;
+  outline:none;transition:border-color .3s ease,background .3s ease,box-shadow .3s ease;
+}
 .ff::placeholder{color:rgba(250,247,242,.35)}
-.ff:focus{border-color:var(--bl)}
-.btn-end{width:100%;background:var(--bl);color:var(--bd);border:none;padding:.9rem;border-radius:8px;font-weight:700;font-size:.93rem;cursor:pointer;font-family:'Mulish',sans-serif;transition:opacity .2s}
-.btn-end:hover{opacity:.85}
-.form-note{font-size:.73rem;color:rgba(250,247,242,.3);margin-top:.75rem}
-.pricing{padding:5rem 2rem;background:var(--warm)}
-.pricing-inner{max-width:760px;margin:0 auto}
-.pc-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:3rem}
-.pc{background:white;border-radius:20px;padding:2rem;border:1px solid var(--bp)}
-.pc.featured{background:var(--bd);border-color:var(--bd);position:relative;overflow:hidden}
-.pc.featured::before{content:'Рекомендуем';position:absolute;top:18px;right:-22px;background:var(--accent);color:white;font-size:.65rem;font-weight:700;padding:4px 30px;transform:rotate(45deg);letter-spacing:.06em}
-.pc-plan{font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem}
+.ff:focus{
+  border-color:var(--bl);background:rgba(255,255,255,.08);
+  box-shadow:0 0 0 4px rgba(196,168,130,.1);
+}
+.btn-end{
+  width:100%;background:var(--bl);color:var(--bd);
+  border:none;padding:1rem;border-radius:10px;
+  font-weight:700;font-size:.93rem;cursor:pointer;
+  font-family:'Mulish',sans-serif;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease;
+  position:relative;overflow:hidden;
+}
+.btn-end:hover{transform:translateY(-2px);box-shadow:0 12px 24px -6px rgba(196,168,130,.4)}
+.form-note{font-size:.72rem;color:rgba(250,247,242,.3);margin-top:.85rem}
+
+/* ─── Pricing ──────────────────────────────────────────────────────── */
+.pricing{padding:6rem 2rem;background:var(--warm)}
+.pricing-inner{max-width:820px;margin:0 auto}
+.pc-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3.5rem}
+.pc{
+  background:white;border-radius:22px;padding:2.25rem 2rem;
+  border:1px solid var(--bp);
+  transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease;
+  position:relative;
+}
+.pc:hover{transform:translateY(-4px);box-shadow:0 20px 44px -12px rgba(61,43,31,.14)}
+.pc.featured{
+  background:var(--bd);
+  border:1px solid var(--bl);
+  box-shadow:0 0 0 6px rgba(196,168,130,.1),0 24px 50px -12px rgba(61,43,31,.35);
+}
+.pc.featured::before{
+  content:'';position:absolute;inset:-1px;border-radius:22px;
+  padding:1px;
+  background:linear-gradient(135deg,var(--bl),transparent 40%,var(--bl));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;
+  opacity:.7;
+}
+.pc-plan{
+  font-size:.7rem;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:.7rem;
+  display:inline-flex;align-items:center;gap:.5rem;
+}
 .pc.featured .pc-plan{color:var(--bl)}
-.pc-price{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:600;color:var(--bd);line-height:1}
+.pc.featured .pc-plan::after{
+  content:'Рекомендуем';
+  background:rgba(196,168,130,.15);
+  color:var(--bl);
+  padding:3px 8px;border-radius:4px;
+  font-size:.6rem;letter-spacing:.1em;
+}
+.pc-price{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.6rem;font-weight:600;
+  color:var(--bd);line-height:1;
+}
 .pc.featured .pc-price{color:white}
-.pc-period{font-size:.77rem;color:var(--muted);margin-bottom:1.5rem}
+.pc-period{font-size:.78rem;color:var(--muted);margin-bottom:1.75rem}
 .pc.featured .pc-period{color:var(--bl)}
-.pc-list{list-style:none;margin-bottom:1.75rem}
-.pc-list li{font-size:.86rem;color:var(--muted);padding:.33rem 0;display:flex;gap:.6rem}
-.pc.featured .pc-list li{color:rgba(250,247,242,.75)}
+.pc-list{list-style:none;margin-bottom:1.85rem}
+.pc-list li{
+  font-size:.87rem;color:var(--muted);
+  padding:.38rem 0;display:flex;gap:.65rem;align-items:baseline;
+}
+.pc.featured .pc-list li{color:rgba(250,247,242,.78)}
 .pc-list li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
 .pc.featured .pc-list li::before{color:var(--bl)}
-.pc-btn{display:block;text-align:center;padding:.875rem;border-radius:10px;font-weight:600;font-size:.9rem;text-decoration:none;background:var(--bp);color:var(--bd);transition:opacity .2s}
-.pc.featured .pc-btn{background:var(--bl)}
-.pc-btn:hover{opacity:.8}
-.pc-note{text-align:center;font-size:.78rem;color:var(--muted);margin-top:1.25rem}
-.dl-section{padding:5rem 2rem;background:var(--bd);text-align:center}
-.dl-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5vw,3.2rem);font-weight:500;color:var(--cream);margin-bottom:.75rem;line-height:1.2}
-.dl-sub{font-size:.93rem;color:var(--bl);margin-bottom:2.25rem;font-weight:300}
-.dl-btn{display:inline-flex;align-items:center;gap:.75rem;background:var(--cream);color:var(--bd);padding:1rem 2rem;border-radius:10px;font-weight:700;font-size:.98rem;text-decoration:none;transition:all .2s}
-.dl-btn:hover{background:var(--warm);transform:translateY(-2px)}
-.dl-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.07);color:var(--bl);padding:.5rem 1rem;border-radius:20px;font-size:.77rem;margin-top:1.5rem}
-footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
-.f-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--bl)}
-.f-links{display:flex;gap:1.5rem;list-style:none;flex-wrap:wrap}
-.f-links a{font-size:.78rem;color:var(--muted);text-decoration:none;transition:color .2s}
+.pc-btn{
+  display:block;text-align:center;padding:.95rem;
+  border-radius:10px;font-weight:600;font-size:.9rem;
+  text-decoration:none;background:var(--bp);color:var(--bd);
+  transition:background .25s ease,transform .3s cubic-bezier(.2,.7,.2,1);
+}
+.pc.featured .pc-btn{background:var(--bl);color:var(--bd)}
+.pc-btn:hover{transform:translateY(-1px)}
+.pc.featured .pc-btn:hover{background:#d8bd97}
+.pc-note{text-align:center;font-size:.8rem;color:var(--muted);margin-top:1.5rem}
+
+/* ─── Download section ─────────────────────────────────────────────── */
+.dl-section{
+  padding:6rem 2rem;
+  background:var(--bd);text-align:center;
+  position:relative;overflow:hidden;
+}
+.dl-section::before{
+  content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:800px;height:800px;
+  background:radial-gradient(circle,rgba(196,168,130,.06) 0%,transparent 60%);
+  pointer-events:none;
+}
+.dl-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.9rem,5.2vw,3.4rem);
+  font-weight:500;color:var(--cream);
+  margin-bottom:.85rem;line-height:1.15;
+  position:relative;
+}
+.dl-sub{font-size:.95rem;color:var(--bl);margin-bottom:2.5rem;font-weight:300;position:relative}
+.dl-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.25rem;position:relative}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:.75rem;
+  background:var(--cream);color:var(--bd);
+  padding:1.1rem 2.1rem;border-radius:11px;
+  font-weight:700;font-size:.98rem;text-decoration:none;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease;
+  box-shadow:0 12px 30px -8px rgba(0,0,0,.4);
+}
+.dl-btn:hover{transform:translateY(-3px);box-shadow:0 20px 40px -8px rgba(0,0,0,.5)}
+.dl-btn.alt{background:rgba(255,255,255,.08);color:var(--cream);border:1px solid rgba(196,168,130,.25)}
+.dl-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(255,255,255,.06);color:var(--bl);
+  padding:.55rem 1.1rem;border-radius:20px;
+  font-size:.77rem;margin-top:1.5rem;position:relative;
+  border:1px solid rgba(196,168,130,.15);
+}
+
+/* ─── Footer ───────────────────────────────────────────────────────── */
+footer{
+  background:#241a13;
+  padding:2.5rem 2rem;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:1rem;
+}
+.f-logo{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:var(--bl)}
+.f-links{display:flex;gap:1.75rem;list-style:none;flex-wrap:wrap}
+.f-links a{
+  font-size:.8rem;color:var(--muted);text-decoration:none;
+  transition:color .25s ease;
+}
 .f-links a:hover{color:var(--bl)}
-.f-copy{font-size:.73rem;color:#5a4a40}
-@media(max-width:900px){.hero{flex-direction:column;padding-top:6rem;gap:3rem}.hero-visual{order:-1}.rm-grid{grid-template-columns:1fr}.pc-cards{grid-template-columns:1fr}.nav-links{display:none}footer{flex-direction:column;text-align:center}}
+.f-copy{font-size:.72rem;color:#5a4a40}
+
+/* ─── Fade-up on scroll ────────────────────────────────────────────── */
+.fade-up{opacity:0;transform:translateY(32px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
+.fade-up.in{opacity:1;transform:translateY(0)}
+
+/* ─── Responsive ───────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .cursor-ring,.cursor-dot,#brush-canvas{display:none!important}
+  body{cursor:auto!important}
+  .hero{flex-direction:column;padding-top:6rem;gap:3rem}
+  .hero-visual{order:-1}
+  .hero-visual,.phone-pin{width:100%;max-width:320px;margin:0 auto}
+  .carousel-frame{transform:none}
+  .carousel-frame:hover{transform:translateY(-4px)}
+  .rm-grid{grid-template-columns:1fr}
+  .pc-cards{grid-template-columns:1fr}
+  .nav-links{display:none}
+  footer{flex-direction:column;text-align:center}
+  .how-body{grid-template-columns:1fr;gap:2rem}
+  .how-visual{position:static}
+  .how-phone{transform:none}
+  .brushstroke{display:none}
+  .blob-1{width:340px;height:340px}
+  .blob-2{width:280px;height:280px}
+  .video-frame{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .marquee-track{animation:none}
+  .w-inner{transform:none!important}
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <a href="#" class="nav-logo">КОТТ</a>
+<div class="cursor-ring"></div>
+<div class="cursor-dot"></div>
+<canvas id="brush-canvas"></canvas>
+
+<nav id="nav">
+  <a href="#" class="nav-logo"><span class="nav-logo-dot"></span>КОТТ</a>
   <ul class="nav-links">
     <li><a href="#features">Возможности</a></li>
+    <li><a href="#how">Как работает</a></li>
     <li><a href="#roadmap">Планы</a></li>
-    <li><a href="#endorser">Эндорсеры</a></li>
+    <li><a href="#endorser">Партнёрам</a></li>
     <li><a href="#pricing">Тарифы</a></li>
-    <li><a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="nav-cta">Скачать</a></li>
+    <li><a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="nav-cta" data-magnetic>Скачать</a></li>
   </ul>
 </nav>
 
-<section class="hero">
-  <div class="hero-text">
-    <p class="eyebrow">Для художников и авторов</p>
-    <h1>Каждая работа заслуживает <em>своей истории</em></h1>
-    <p class="hero-sub">КОТТ — первое российское приложение для профессионального учёта произведений искусства. Реестр, выставки, продажи, документы — всё в кармане, работает без интернета.</p>
-    <div class="hero-actions">
-      <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="btn btn-dark">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.39.07 2.36.73 3.18.73.83 0 2.38-.9 4.01-.77 1.68.16 2.95.81 3.77 2.08-3.47 2.04-2.9 6.49.5 7.77-.7 1.36-1.61 2.7-3.46 3.07zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-        Скачать в RuStore
-      </a>
-      <a href="#endorser" class="btn btn-outline">Получить бесплатно →</a>
-    </div>
-    <p class="hero-note">Первые 30 работ бесплатно · Без регистрации · Данные только на телефоне</p>
+<div class="hero-stage" id="hero-stage">
+  <div class="blob blob-1" data-parallax="0.18"></div>
+  <div class="blob blob-2" data-parallax="0.35"></div>
+  <div class="blob blob-3" data-parallax="0.5"></div>
+  <div class="brushstroke" data-parallax="0.08">
+    <svg viewBox="0 0 340 120" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 60 Q 80 20, 160 50 T 332 55" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.9"/>
+      <path d="M12 75 Q 90 45, 170 65 T 328 68" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5"/>
+    </svg>
   </div>
-  <div class="hero-visual">
-    <div class="carousel-wrap">
-      <div class="carousel-frame" id="cf">
-        <div class="carousel-inner" id="ci">
-          <div class="c-slide"><img src="screens/screen1.jpg" alt="Реестр работ"></div>
-          <div class="c-slide"><img src="screens/screen2.jpg" alt="Карточка работы"></div>
-          <div class="c-slide"><img src="screens/screen3.jpg" alt="Выставки"></div>
-          <div class="c-slide"><img src="screens/screen4.jpg" alt="Детали выставки"></div>
-          <div class="c-slide"><img src="screens/screen5.jpg" alt="Продажи"></div>
-          <div class="c-slide"><img src="screens/screen6.jpg" alt="Детали продажи"></div>
-          <div class="c-slide"><img src="screens/screen7.jpg" alt="Профиль"></div>
+  <div class="paper-texture"></div>
+
+  <section class="hero" id="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Для художников и авторов</p>
+      <h1 data-split>Каждая работа заслуживает <em>своей истории</em></h1>
+      <p class="hero-sub fade-up">КОТТ — первое российское приложение для профессионального учёта произведений искусства. Реестр, выставки, продажи, документы — всё в кармане, работает без интернета.</p>
+      <div class="hero-actions fade-up">
+        <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="btn btn-dark" data-magnetic>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.39.07 2.36.73 3.18.73.83 0 2.38-.9 4.01-.77 1.68.16 2.95.81 3.77 2.08-3.47 2.04-2.9 6.49.5 7.77-.7 1.36-1.61 2.7-3.46 3.07zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+          Скачать в RuStore
+        </a>
+        <a href="#endorser" class="btn btn-outline" data-magnetic>Получить бесплатно →</a>
+      </div>
+      <p class="hero-note fade-up">Первые 30 работ бесплатно · Без регистрации · Данные только на телефоне</p>
+
+      <div class="marquee fade-up" aria-hidden="true">
+        <div class="marquee-track">
+          <span>Живопись</span><span>Графика</span><span>Скульптура</span><span>Керамика</span><span>Гравюра</span><span>Фотография</span><span>Инсталляция</span><span>Коллаж</span><span>Стрит-арт</span>
+          <span>Живопись</span><span>Графика</span><span>Скульптура</span><span>Керамика</span><span>Гравюра</span><span>Фотография</span><span>Инсталляция</span><span>Коллаж</span><span>Стрит-арт</span>
         </div>
       </div>
-      <div class="carousel-dots" id="cdots"></div>
-      <div class="c-labels">
-        <span class="c-label active">Реестр работ</span>
-        <span class="c-label">Карточка работы</span>
-        <span class="c-label">Выставки</span>
-        <span class="c-label">Детали выставки</span>
-        <span class="c-label">Учёт продаж</span>
-        <span class="c-label">Карточка продажи</span>
-        <span class="c-label">Профиль художника</span>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone-pin" id="phone-pin">
+        <div class="carousel-frame" id="cf" data-cursor="swipe">
+          <div class="carousel-inner" id="ci">
+            <div class="c-slide"><img src="screens/screen1.jpg" alt="Реестр работ"></div>
+            <div class="c-slide"><img src="screens/screen2.jpg" alt="Карточка работы"></div>
+            <div class="c-slide"><img src="screens/screen3.jpg" alt="Выставки"></div>
+            <div class="c-slide"><img src="screens/screen4.jpg" alt="Детали выставки"></div>
+            <div class="c-slide"><img src="screens/screen5.jpg" alt="Продажи"></div>
+            <div class="c-slide"><img src="screens/screen6.jpg" alt="Детали продажи"></div>
+            <div class="c-slide"><img src="screens/screen7.jpg" alt="Профиль"></div>
+          </div>
+        </div>
+        <div class="carousel-dots" id="cdots"></div>
+        <div class="c-labels">
+          <span class="c-label active">Реестр работ</span>
+          <span class="c-label">Карточка работы</span>
+          <span class="c-label">Выставки</span>
+          <span class="c-label">Детали выставки</span>
+          <span class="c-label">Учёт продаж</span>
+          <span class="c-label">Карточка продажи</span>
+          <span class="c-label">Профиль художника</span>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
+
+<div class="gradient-to-dark"></div>
 
 <section class="problem">
   <div class="problem-inner">
-    <h2 class="prob-title">Художник создаёт — но где всё это хранится?</h2>
-    <p class="prob-sub">Работы разбросаны по выставкам и мастерским. Продажи — в переписках. Договоры — в стопке бумаг. Фото вперемешку в галерее. Знакомо?</p>
+    <h2 class="prob-title fade-up" data-split>Художник создаёт — но где всё это хранится?</h2>
+    <p class="prob-sub fade-up">Работы разбросаны по выставкам и мастерским. Продажи — в переписках. Договоры — в стопке бумаг. Фото вперемешку в галерее. Знакомо?</p>
     <div class="pain-grid">
-      <div class="pain-card"><div class="pain-icon">📋</div><p class="pain-text"><strong>«Где этот холст?»</strong> — Ушёл на выставку три года назад. Куда потом — уже не вспомнить.</p></div>
-      <div class="pain-card"><div class="pain-icon">📑</div><p class="pain-text"><strong>Галерея просит CV</strong> — и художник ночью собирает его из кусочков из разных файлов.</p></div>
-      <div class="pain-card"><div class="pain-icon">🤝</div><p class="pain-text"><strong>Покупатель хочет договор</strong> — а готового шаблона нет. Приходится искать и переделывать.</p></div>
-      <div class="pain-card"><div class="pain-icon">🔍</div><p class="pain-text"><strong>«А это точно моя работа?»</strong> — Без сертификата подлинности доказать авторство сложно.</p></div>
+      <div class="pain-card fade-up">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/><path d="M11 8v3l2 2"/></svg>
+        </div>
+        <p class="pain-text"><strong>«Где этот холст?»</strong>Ушёл на выставку три года назад. Куда потом — уже не вспомнить.</p>
+      </div>
+      <div class="pain-card fade-up">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+        </div>
+        <p class="pain-text"><strong>Галерея просит CV</strong>А художник ночью собирает его из кусочков из разных файлов.</p>
+      </div>
+      <div class="pain-card fade-up">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><path d="M5 4h14v14l-3-2-3 2-3-2-3 2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>
+        </div>
+        <p class="pain-text"><strong>Покупатель хочет договор</strong>А готового шаблона нет. Приходится искать и переделывать.</p>
+      </div>
+      <div class="pain-card fade-up">
+        <div class="pain-icon">
+          <svg viewBox="0 0 24 24" class="icon-line"><path d="M12 2l8 4v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <p class="pain-text"><strong>«А это точно моя работа?»</strong>Без сертификата подлинности доказать авторство сложно.</p>
+      </div>
     </div>
   </div>
 </section>
+
+<div class="gradient-to-cream"></div>
 
 <section class="features" id="features">
-  <p class="section-label">Решение</p>
-  <h2 class="section-title">КОТТ делает это за вас</h2>
-  <p class="section-sub">Одно приложение заменяет таблицы, папки с документами и записные книжки. Работает офлайн — данные никуда не уходят с вашего телефона.</p>
+  <p class="section-label fade-up">Решение</p>
+  <h2 class="section-title fade-up" data-split>КОТТ делает это за вас</h2>
+  <p class="section-sub fade-up">Одно приложение заменяет таблицы, папки с документами и записные книжки. Работает офлайн — данные никуда не уходят с вашего телефона.</p>
   <div class="feat-grid">
-    <div class="feat"><div class="feat-icon">🗂</div><h3 class="feat-title">Реестр с уникальными номерами</h3><p class="feat-desc">Каждой работе присваивается номер КОТТ-2026-001. Фото, техника, материал, размеры, концепция, история статусов — всё в одной карточке.</p></div>
-    <div class="feat"><div class="feat-icon">📄</div><h3 class="feat-title">Документы за 10 секунд</h3><p class="feat-desc">Сертификат подлинности, договор купли-продажи, акт передачи — генерируются автоматически. Шаблоны редактируются под себя.</p></div>
-    <div class="feat"><div class="feat-icon">🖼</div><h3 class="feat-title">Редактор фото в приложении</h3><p class="feat-desc">Обрезка, яркость, контраст, теплота — прямо при добавлении работы. Фото в резервной копии вместе со всеми данными.</p></div>
-    <div class="feat"><div class="feat-icon">🏛</div><h3 class="feat-title">Выставки → CV автоматически</h3><p class="feat-desc">Добавили выставку — она сразу в CV профиля. Персональные и групповые разделяются автоматически. Галерея просит резюме — вы готовы.</p></div>
-    <div class="feat"><div class="feat-icon">💰</div><h3 class="feat-title">Учёт продаж и покупателей</h3><p class="feat-desc">Кто купил, когда, за сколько, где хранится. Статус работы меняется автоматически. История сделки всегда под рукой.</p></div>
-    <div class="feat"><div class="feat-icon">🔒</div><h3 class="feat-title">Ваши данные — только у вас</h3><p class="feat-desc">Никакой регистрации, никаких серверов. Данные в защищённой базе на телефоне. Резервные копии включают все фотографии.</p></div>
-  </div>
-</section>
-
-
-<!-- VIDEO -->
-<section style="padding:4rem 2rem;background:var(--bd);text-align:center">
-  <p class="section-label" style="color:var(--bl)">В действии</p>
-  <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:500;color:var(--cream);margin-bottom:2rem;line-height:1.25">
-    Смотри как это работает
-  </h2>
-  <div style="max-width:360px;margin:0 auto;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.4)">
-    <video
-      src="video.mp4"
-      controls
-      playsinline
-      preload="metadata"
-      poster="screens/screen1.jpg"
-      style="width:100%;display:block;background:#000"
-    ></video>
-  </div>
-  <p style="margin-top:1.25rem;font-size:0.85rem;color:var(--bl);font-weight:300">
-    30 секунд — и ты поймёшь всё
-  </p>
-</section>
-
-<section class="how">
-  <div class="how-inner">
-    <p class="section-label" style="text-align:center">Как это работает</p>
-    <h2 class="section-title" style="text-align:center">Три шага до порядка в архиве</h2>
-    <div class="steps">
-      <div class="step"><div class="step-num">01</div><div class="step-title">Заполните профиль</div><p class="step-desc">Имя, контакты, биография. Один раз — и все документы с вашими данными автоматически.</p></div>
-      <div class="step"><div class="step-num">02</div><div class="step-title">Добавьте работы</div><p class="step-desc">Фото, техника, размеры, концепция. Каждой работе уникальный номер и полная история.</p></div>
-      <div class="step"><div class="step-num">03</div><div class="step-title">Работайте спокойно</div><p class="step-desc">Выставки, продажи, документы — всё связано и всегда под рукой. Без бумаг и таблиц.</p></div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="7" y1="13.5" x2="17" y2="13.5"/><line x1="7" y1="17" x2="14" y2="17"/><circle cx="18" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <h3 class="feat-title">Реестр с уникальными номерами</h3>
+      <p class="feat-desc">Каждой работе присваивается номер КОТТ-2026-001. Фото, техника, материал, размеры, концепция, история статусов — всё в одной карточке.</p>
+    </div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="15" y2="12"/><circle cx="16.5" cy="17" r="2.3"/><path d="M14.5 15.5l4 3"/></svg>
+      </div>
+      <h3 class="feat-title">Документы за 10 секунд</h3>
+      <p class="feat-desc">Сертификат подлинности, договор купли-продажи, акт передачи — генерируются автоматически. Шаблоны редактируются под себя.</p>
+    </div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <h3 class="feat-title">Редактор фото в приложении</h3>
+      <p class="feat-desc">Обрезка, яркость, контраст, теплота — прямо при добавлении работы. Фото в резервной копии вместе со всеми данными.</p>
+    </div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><polyline points="2 9 12 3 22 9"/><line x1="4" y1="21" x2="20" y2="21"/><line x1="5" y1="10" x2="5" y2="20"/><line x1="19" y1="10" x2="19" y2="20"/><line x1="10" y1="10" x2="10" y2="20"/><line x1="14" y1="10" x2="14" y2="20"/></svg>
+      </div>
+      <h3 class="feat-title">Выставки → CV автоматически</h3>
+      <p class="feat-desc">Добавили выставку — она сразу в CV профиля. Персональные и групповые разделяются автоматически. Галерея просит резюме — вы готовы.</p>
+    </div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><circle cx="12" cy="12" r="9"/><path d="M9.5 8.5h4a2.5 2.5 0 0 1 0 5H9.5V8m0 3h4.5m-2.5 0v5.5"/></svg>
+      </div>
+      <h3 class="feat-title">Учёт продаж и покупателей</h3>
+      <p class="feat-desc">Кто купил, когда, за сколько, где хранится. Статус работы меняется автоматически. История сделки всегда под рукой.</p>
+    </div>
+    <div class="feat fade-up">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24" class="icon-line"><path d="M12 2l8 4v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h3 class="feat-title">Ваши данные — только у вас</h3>
+      <p class="feat-desc">Никакой регистрации, никаких серверов. Данные в защищённой базе на телефоне. Резервные копии включают все фотографии.</p>
     </div>
   </div>
 </section>
 
+<div class="gradient-cream-to-warm"></div>
+
+<section class="video-section">
+  <p class="section-label fade-up">В действии</p>
+  <h2 class="fade-up" data-split>Смотрите, как это работает</h2>
+  <div class="video-frame fade-up">
+    <video src="video.mp4" controls playsinline preload="metadata" poster="screens/screen1.jpg"></video>
+  </div>
+  <p class="video-note fade-up">30 секунд — и всё станет понятно</p>
+</section>
+
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-head">
+      <p class="section-label fade-up">Как это работает</p>
+      <h2 class="section-title fade-up" data-split>Три шага до порядка в архиве</h2>
+    </div>
+    <div class="how-body">
+      <div class="how-visual">
+        <div class="how-phone">
+          <img src="screens/screen7.jpg" class="how-img active" data-step="1" alt="Профиль">
+          <img src="screens/screen1.jpg" class="how-img" data-step="2" alt="Реестр">
+          <img src="screens/screen3.jpg" class="how-img" data-step="3" alt="Выставки">
+        </div>
+      </div>
+      <div class="how-steps">
+        <div class="how-step active" data-step="1">
+          <div class="how-step-num">01</div>
+          <h3 class="how-step-title">Заполните профиль</h3>
+          <p class="how-step-desc">Имя, контакты, биография. Один раз — и все документы с вашими данными автоматически. Больше не нужно каждый раз собирать CV по кусочкам.</p>
+        </div>
+        <div class="how-step" data-step="2">
+          <div class="how-step-num">02</div>
+          <h3 class="how-step-title">Добавьте работы</h3>
+          <p class="how-step-desc">Фото, техника, размеры, концепция. Каждой работе — уникальный номер и полная история. Всё, что раньше жило в разных файлах, теперь в одном месте.</p>
+        </div>
+        <div class="how-step" data-step="3">
+          <div class="how-step-num">03</div>
+          <h3 class="how-step-title">Работайте спокойно</h3>
+          <p class="how-step-desc">Выставки, продажи, документы — всё связано и всегда под рукой. Без бумаг и таблиц. Галерея просит информацию — вы её отдаёте за минуту.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gradient-warm-to-cream"></div>
+
 <section class="roadmap" id="roadmap">
-  <p class="section-label">Развитие</p>
-  <h2 class="section-title">Сейчас и что будет дальше</h2>
-  <p class="section-sub">КОТТ развивается вместе с художниками. Вот что уже есть и что появится совсем скоро.</p>
+  <p class="section-label fade-up">Развитие</p>
+  <h2 class="section-title fade-up" data-split>Сейчас и что будет дальше</h2>
+  <p class="section-sub fade-up">КОТТ развивается вместе с художниками. Вот что уже есть и что появится совсем скоро.</p>
   <div class="rm-grid">
-    <div class="rm-card"><span class="rm-tag tag-now">Уже сейчас</span><h3 class="rm-title">Реестр и документы</h3><p class="rm-desc">Учёт работ с фото, редактор изображений, PDF-документы, выставки, продажи, CV художника, резервные копии.</p></div>
-    <div class="rm-card"><span class="rm-tag tag-now">Уже сейчас</span><h3 class="rm-title">Работает офлайн</h3><p class="rm-desc">Не нужен интернет и регистрация. Данные только на вашем телефоне. Полный контроль над архивом.</p></div>
-    <div class="rm-card coming"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Облако и синхронизация</h3><p class="rm-desc">Вход через VK ID или СМС. Данные в облаке — не потеряются при смене телефона.</p></div>
-    <div class="rm-card coming"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Публичный каталог</h3><p class="rm-desc">Публикуйте работы — покупатели находят вас напрямую. Безопасная сделка с автоматическими документами.</p></div>
-    <div class="rm-card coming"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Моя коллекция</h3><p class="rm-desc">Режим коллекционера — учёт приобретённых работ с провенансом, историей и документами.</p></div>
-    <div class="rm-card coming"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">AR-примерка и веб-версия</h3><p class="rm-desc">Покажите как картина выглядит в интерьере через телефон. Веб-каталог для соцсетей.</p></div>
+    <div class="rm-card fade-up"><span class="rm-tag tag-now">Уже сейчас</span><h3 class="rm-title">Реестр и документы</h3><p class="rm-desc">Учёт работ с фото, редактор изображений, PDF-документы, выставки, продажи, CV художника, резервные копии.</p></div>
+    <div class="rm-card fade-up"><span class="rm-tag tag-now">Уже сейчас</span><h3 class="rm-title">Работает офлайн</h3><p class="rm-desc">Не нужен интернет и регистрация. Данные только на вашем телефоне. Полный контроль над архивом.</p></div>
+    <div class="rm-card coming fade-up"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Облако и синхронизация</h3><p class="rm-desc">Вход через VK ID или СМС. Данные в облаке — не потеряются при смене телефона.</p></div>
+    <div class="rm-card coming fade-up"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Публичный каталог</h3><p class="rm-desc">Публикуйте работы — покупатели находят вас напрямую. Безопасная сделка с автоматическими документами.</p></div>
+    <div class="rm-card coming fade-up"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">Моя коллекция</h3><p class="rm-desc">Режим коллекционера — учёт приобретённых работ с провенансом, историей и документами.</p></div>
+    <div class="rm-card coming fade-up"><span class="rm-tag tag-soon">Скоро</span><h3 class="rm-title">AR-примерка и веб-версия</h3><p class="rm-desc">Покажите как картина выглядит в интерьере через телефон. Веб-каталог для соцсетей.</p></div>
   </div>
 </section>
 
 <section class="endorser" id="endorser">
   <div class="end-inner">
-    <div class="end-badge">
+    <div class="end-badge fade-up">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       Программа для художников
     </div>
-    <h2 class="end-title">Ищем художников-партнёров</h2>
-    <p class="end-sub">Мы хотим дать КОТТ настоящим художникам — тем, кто влюбится в приложение и расскажет о нём своей аудитории. Взамен — полная версия бесплатно навсегда.</p>
-    <div class="perks">
+    <h2 class="end-title fade-up" data-split>Ищем художников-партнёров</h2>
+    <p class="end-sub fade-up">Мы хотим дать КОТТ настоящим художникам — тем, кто влюбится в приложение и расскажет о нём своей аудитории. Взамен — полная версия бесплатно навсегда.</p>
+    <div class="perks fade-up">
       <span class="perk"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Полная версия бесплатно</span>
       <span class="perk"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Все будущие обновления</span>
       <span class="perk"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Влияние на развитие</span>
       <span class="perk"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Упоминание на сайте</span>
     </div>
-    <div class="end-form">
+    <div class="end-form fade-up">
       <p>Напишите нам — расскажите о себе и своём творчестве. Свяжемся в течение 48 часов и пришлём ключ активации.</p>
       <form id="end-form" action="https://formspree.io/f/xwvavlde" method="POST">
         <input class="ff" type="text" name="name" placeholder="Ваше имя и город" required>
         <input class="ff" type="text" name="portfolio" placeholder="Ссылка на портфолио или соцсети">
         <input class="ff" type="email" name="email" placeholder="Email для связи" required>
         <input type="hidden" name="_subject" value="Заявка на партнёрство КОТТ">
-        <button class="btn-end" type="submit" id="end-btn">Хочу стать партнёром →</button>
+        <button class="btn-end" type="submit" id="end-btn" data-magnetic>Хочу стать партнёром →</button>
       </form>
       <div id="end-success" style="display:none;color:rgba(250,247,242,.8);font-size:.88rem;margin-top:1rem;line-height:1.6">
         ✓ Заявка отправлена! Напишем вам в течение 48 часов.
@@ -293,10 +1038,10 @@ footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-b
 
 <section class="pricing" id="pricing">
   <div class="pricing-inner">
-    <p class="section-label">Тарифы</p>
-    <h2 class="section-title">Просто и честно</h2>
+    <p class="section-label fade-up">Тарифы</p>
+    <h2 class="section-title fade-up" data-split>Просто и честно</h2>
     <div class="pc-cards">
-      <div class="pc">
+      <div class="pc fade-up">
         <p class="pc-plan">Бесплатно</p>
         <div class="pc-price">0 ₽</div>
         <p class="pc-period">навсегда</p>
@@ -307,9 +1052,9 @@ footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-b
           <li>Резервные копии</li>
           <li>Выставки и продажи</li>
         </ul>
-        <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="pc-btn">Скачать бесплатно</a>
+        <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="pc-btn" data-magnetic>Скачать бесплатно</a>
       </div>
-      <div class="pc featured">
+      <div class="pc featured fade-up">
         <p class="pc-plan">Полная версия</p>
         <div class="pc-price">2 990 ₽</div>
         <p class="pc-period">разовая оплата · навсегда</p>
@@ -320,7 +1065,7 @@ footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-b
           <li>Приоритетная поддержка</li>
           <li>Без подписок навсегда</li>
         </ul>
-        <a href="mailto:deepdrift@mail.ru?subject=Покупка полной версии КОТТ" class="pc-btn">Получить полную версию</a>
+        <a href="mailto:deepdrift@mail.ru?subject=Покупка полной версии КОТТ" class="pc-btn" data-magnetic>Получить полную версию</a>
       </div>
     </div>
     <p class="pc-note">Разовая оплата. Никаких подписок. Купил один раз — пользуешься всегда.</p>
@@ -328,19 +1073,19 @@ footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-b
 </section>
 
 <section class="dl-section">
-  <h2 class="dl-title">Начните вести реестр прямо сейчас</h2>
-  <p class="dl-sub">Бесплатно. Без регистрации. Все данные у вас.</p>
-  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem">
-    <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="dl-btn">
+  <h2 class="dl-title fade-up" data-split>Начните вести реестр прямо сейчас</h2>
+  <p class="dl-sub fade-up">Бесплатно. Без регистрации. Все данные у вас.</p>
+  <div class="dl-btns fade-up">
+    <a href="https://www.rustore.ru/catalog/app/ru.kott.app" class="dl-btn" data-magnetic>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.39.07 2.36.73 3.18.73.83 0 2.38-.9 4.01-.77 1.68.16 2.95.81 3.77 2.08-3.47 2.04-2.9 6.49.5 7.77-.7 1.36-1.61 2.7-3.46 3.07zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
       Скачать в RuStore
     </a>
-    <a href="https://github.com/DDmsngr/KOTT/releases/latest/download/app-release.apk" class="dl-btn" style="background:rgba(255,255,255,0.12);color:var(--cream)">
+    <a href="https://github.com/DDmsngr/KOTT/releases/latest/download/app-release.apk" class="dl-btn alt" data-magnetic>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
       Скачать APK напрямую
     </a>
   </div>
-  <span class="dl-badge">
+  <span class="dl-badge fade-up">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
     Данные хранятся только на вашем устройстве
   </span>
@@ -356,44 +1101,349 @@ footer{background:#2a1f18;padding:2rem 2rem;display:flex;justify-content:space-b
   <span class="f-copy">© 2026 КОТТ</span>
 </footer>
 
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
 <script>
-const ci=document.getElementById('ci'),cf=document.getElementById('cf'),cdots=document.getElementById('cdots');
-const labels=document.querySelectorAll('.c-label');
-const total=7;let cur=0,startX=0,isDrag=false,timer;
-for(let i=0;i<total;i++){const d=document.createElement('button');d.className='dot'+(i===0?' active':'');d.onclick=()=>goTo(i);cdots.appendChild(d);}
-function goTo(n){cur=(n+total)%total;ci.style.transform=`translateX(-${cur*100}%)`;cdots.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===cur));labels.forEach((l,i)=>l.classList.toggle('active',i===cur));reset();}
-function reset(){clearInterval(timer);timer=setInterval(()=>goTo(cur+1),3500);}
-cf.addEventListener('mousedown',e=>{startX=e.clientX;isDrag=true;});
-cf.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;isDrag=true;},{passive:true});
-cf.addEventListener('mouseup',e=>{if(!isDrag)return;isDrag=false;const dx=e.clientX-startX;if(Math.abs(dx)>40)goTo(cur+(dx<0?1:-1));});
-cf.addEventListener('touchend',e=>{if(!isDrag)return;isDrag=false;const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>40)goTo(cur+(dx<0?1:-1));});
-reset();
-const endForm=document.getElementById('end-form');
-if(endForm){
-  endForm.addEventListener('submit',async function(e){
-    e.preventDefault();
-    const btn=document.getElementById('end-btn');
-    btn.textContent='Отправляем...';
-    btn.disabled=true;
-    try{
-      const resp=await fetch(endForm.action,{
-        method:'POST',
-        body:new FormData(endForm),
-        headers:{Accept:'application/json'}
-      });
-      if(resp.ok){
-        endForm.style.display='none';
-        document.getElementById('end-success').style.display='block';
-      } else {
-        btn.textContent='Ошибка — попробуйте ещё раз';
-        btn.disabled=false;
-      }
-    }catch(err){
-      btn.textContent='Ошибка сети — попробуйте ещё раз';
-      btn.disabled=false;
+(function(){
+  'use strict';
+
+  const isMobile = window.innerWidth < 900 || 'ontouchstart' in window;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ─── Lenis smooth scroll ────────────────────────────────────────── */
+  let lenis;
+  if(!reduce){
+    lenis = new Lenis({
+      duration: 1.15,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      smoothTouch: false,
+    });
+    function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+
+    if(window.gsap && window.ScrollTrigger){
+      gsap.registerPlugin(ScrollTrigger);
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(time => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
     }
+
+    // Anchor links via Lenis
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href');
+        if(id.length > 1){
+          const el = document.querySelector(id);
+          if(el){ e.preventDefault(); lenis.scrollTo(el, { offset: -60 }); }
+        }
+      });
+    });
+  }
+
+  /* ─── Nav compact on scroll ──────────────────────────────────────── */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('compact', window.scrollY > 60);
+  }, { passive: true });
+
+  /* ─── Text-reveal (split into words) ─────────────────────────────── */
+  document.querySelectorAll('[data-split]').forEach(el => {
+    const html = el.innerHTML;
+    // Preserve <em> tags — split their text separately
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    function wrapText(node){
+      if(node.nodeType === 3){
+        const words = node.textContent.split(/(\s+)/);
+        const frag = document.createDocumentFragment();
+        words.forEach(w => {
+          if(/^\s+$/.test(w)){ frag.appendChild(document.createTextNode(w)); }
+          else if(w){
+            const wrap = document.createElement('span');
+            wrap.className = 'w-wrap';
+            const inner = document.createElement('span');
+            inner.className = 'w-inner';
+            inner.textContent = w;
+            wrap.appendChild(inner);
+            frag.appendChild(wrap);
+          }
+        });
+        node.replaceWith(frag);
+      } else if(node.nodeType === 1){
+        Array.from(node.childNodes).forEach(wrapText);
+      }
+    }
+    Array.from(tmp.childNodes).forEach(wrapText);
+    el.innerHTML = tmp.innerHTML;
   });
-}
+
+  /* ─── IntersectionObserver: reveal + fade-up ─────────────────────── */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('revealed','in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('[data-split], .fade-up').forEach(el => io.observe(el));
+
+  /* Staggered fade-up children (grids of cards) */
+  document.querySelectorAll('.pain-grid, .feat-grid, .rm-grid, .pc-cards').forEach(grid => {
+    Array.from(grid.children).forEach((child, i) => {
+      child.style.transitionDelay = (i * 70) + 'ms';
+    });
+  });
+
+  /* ─── Parallax blobs & strokes ───────────────────────────────────── */
+  const parallaxItems = document.querySelectorAll('[data-parallax]');
+  if(parallaxItems.length && !reduce){
+    let ticking = false;
+    function updateParallax(){
+      const y = window.scrollY;
+      parallaxItems.forEach(el => {
+        const speed = parseFloat(el.dataset.parallax);
+        el.style.transform = `translate3d(0, ${y * speed}px, 0)`;
+      });
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if(!ticking){ requestAnimationFrame(updateParallax); ticking = true; }
+    }, { passive: true });
+  }
+
+  /* ─── Carousel (hero phone) ──────────────────────────────────────── */
+  const ci = document.getElementById('ci');
+  const cf = document.getElementById('cf');
+  const cdots = document.getElementById('cdots');
+  const labels = document.querySelectorAll('.c-label');
+  const total = 7;
+  let cur = 0, startX = 0, isDrag = false, autoTimer;
+
+  for(let i = 0; i < total; i++){
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Экран ' + (i+1));
+    d.onclick = () => { goTo(i); resetAuto(); };
+    cdots.appendChild(d);
+  }
+  function goTo(n){
+    cur = (n + total) % total;
+    ci.style.transform = `translateX(-${cur*100}%)`;
+    cdots.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i === cur));
+    labels.forEach((l,i) => l.classList.toggle('active', i === cur));
+  }
+  function resetAuto(){
+    clearInterval(autoTimer);
+    autoTimer = setInterval(() => goTo(cur + 1), 4200);
+  }
+
+  // Manual swipe
+  cf.addEventListener('mousedown', e => { startX = e.clientX; isDrag = true; });
+  cf.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDrag = true; }, { passive: true });
+  cf.addEventListener('mouseup', e => {
+    if(!isDrag) return; isDrag = false;
+    const dx = e.clientX - startX;
+    if(Math.abs(dx) > 40){ goTo(cur + (dx < 0 ? 1 : -1)); resetAuto(); }
+  });
+  cf.addEventListener('touchend', e => {
+    if(!isDrag) return; isDrag = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 40){ goTo(cur + (dx < 0 ? 1 : -1)); resetAuto(); }
+  });
+
+  /* ─── Scroll-driven carousel (GSAP ScrollTrigger, desktop only) ──── */
+  if(!isMobile && !reduce && window.gsap && window.ScrollTrigger){
+    // Pin the phone through hero → problem → features
+    ScrollTrigger.create({
+      trigger: '#hero',
+      start: 'top top+=80',
+      endTrigger: '#features',
+      end: 'bottom bottom-=100',
+      pin: '#phone-pin',
+      pinSpacing: false,
+      onEnter: () => clearInterval(autoTimer),
+      onLeaveBack: () => resetAuto(),
+      onLeave: () => resetAuto(),
+    });
+    // Change screens by scroll progress
+    ScrollTrigger.create({
+      trigger: '#hero',
+      start: 'top top',
+      endTrigger: '#features',
+      end: 'bottom bottom',
+      onUpdate: self => {
+        const idx = Math.min(Math.floor(self.progress * total), total - 1);
+        if(idx !== cur){ goTo(idx); }
+      }
+    });
+  } else {
+    resetAuto();
+  }
+
+  /* ─── How-it-works sticky scroll (step highlight) ────────────────── */
+  if(!isMobile && !reduce && window.gsap && window.ScrollTrigger){
+    document.querySelectorAll('.how-step').forEach(step => {
+      const num = step.dataset.step;
+      ScrollTrigger.create({
+        trigger: step,
+        start: 'top center+=100',
+        end: 'bottom center+=100',
+        onToggle: self => {
+          if(self.isActive){
+            document.querySelectorAll('.how-step').forEach(s => s.classList.toggle('active', s === step));
+            document.querySelectorAll('.how-img').forEach(img => img.classList.toggle('active', img.dataset.step === num));
+          }
+        }
+      });
+    });
+  }
+
+  /* ─── Custom cursor (desktop only) ───────────────────────────────── */
+  if(!isMobile){
+    const ring = document.querySelector('.cursor-ring');
+    const dot = document.querySelector('.cursor-dot');
+    let mx = window.innerWidth/2, my = window.innerHeight/2;
+    let rx = mx, ry = my;
+
+    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; document.body.classList.add('cursor-ready'); });
+    window.addEventListener('mouseleave', () => document.body.classList.remove('cursor-ready'));
+
+    function loop(){
+      rx += (mx - rx) * 0.18;
+      ry += (my - ry) * 0.18;
+      dot.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+      ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // Swipe state on phone
+    document.querySelectorAll('[data-cursor="swipe"]').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-swipe'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-swipe'));
+    });
+    // Link state on clickable elements
+    document.querySelectorAll('a, button, .feat, .pain-card, .rm-card, .pc').forEach(el => {
+      el.addEventListener('mouseenter', () => { if(!document.body.classList.contains('cursor-swipe')) document.body.classList.add('cursor-link'); });
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-link'));
+    });
+  }
+
+  /* ─── Brush painting trail (desktop only) ────────────────────────── */
+  if(!isMobile && !reduce){
+    const canvas = document.getElementById('brush-canvas');
+    const ctx = canvas.getContext('2d');
+    let dpr = window.devicePixelRatio || 1;
+    function resize(){
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.scale(dpr, dpr);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const strokes = [];
+    let lastX = null, lastY = null;
+
+    window.addEventListener('mousemove', e => {
+      if(lastX !== null){
+        strokes.push({
+          x1: lastX, y1: lastY,
+          x2: e.clientX, y2: e.clientY,
+          life: 1.0,
+          w: 2.2 + Math.random() * 1.2
+        });
+      }
+      lastX = e.clientX; lastY = e.clientY;
+    });
+
+    function drawLoop(){
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for(let i = strokes.length - 1; i >= 0; i--){
+        const s = strokes[i];
+        s.life -= 0.018;
+        if(s.life <= 0){ strokes.splice(i, 1); continue; }
+        ctx.strokeStyle = `rgba(155, 107, 74, ${s.life * 0.45})`;
+        ctx.lineWidth = s.w * s.life;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(s.x1, s.y1);
+        ctx.lineTo(s.x2, s.y2);
+        ctx.stroke();
+      }
+      requestAnimationFrame(drawLoop);
+    }
+    drawLoop();
+  }
+
+  /* ─── Magnetic buttons ───────────────────────────────────────────── */
+  if(!isMobile && !reduce){
+    document.querySelectorAll('[data-magnetic]').forEach(btn => {
+      btn.addEventListener('mousemove', e => {
+        const r = btn.getBoundingClientRect();
+        const x = e.clientX - r.left - r.width / 2;
+        const y = e.clientY - r.top - r.height / 2;
+        btn.style.transform = `translate(${x * 0.18}px, ${y * 0.28}px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+      });
+    });
+  }
+
+  /* ─── Feature card mouse-tracking glow ───────────────────────────── */
+  if(!isMobile){
+    document.querySelectorAll('.feat').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+        card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+      });
+    });
+  }
+
+  /* ─── Endorser form ──────────────────────────────────────────────── */
+  const endForm = document.getElementById('end-form');
+  if(endForm){
+    endForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      const btn = document.getElementById('end-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Отправляем...';
+      btn.disabled = true;
+      try {
+        const resp = await fetch(endForm.action, {
+          method: 'POST',
+          body: new FormData(endForm),
+          headers: { Accept: 'application/json' }
+        });
+        if(resp.ok){
+          endForm.style.display = 'none';
+          document.getElementById('end-success').style.display = 'block';
+        } else {
+          btn.textContent = 'Ошибка — попробуйте ещё раз';
+          btn.disabled = false;
+        }
+      } catch(err){
+        btn.textContent = 'Ошибка сети — попробуйте ещё раз';
+        btn.disabled = false;
+      }
+    });
+  }
+
+})();
 </script>
+
 </body>
 </html>
