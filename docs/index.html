@@ -49,13 +49,13 @@ body{
   transition:opacity .3s ease,width .3s ease,height .3s ease,background .3s ease,border-color .3s ease;
 }
 .cursor-ring{
-  width:36px;height:36px;
-  border:1.5px solid rgba(61,43,31,.35);
+  width:26px;height:26px;
+  border:1px solid rgba(61,43,31,.16);
   transform:translate(-50%,-50%);
 }
 .cursor-dot{
-  width:6px;height:6px;
-  background:var(--bd);
+  width:4px;height:4px;
+  background:rgba(61,43,31,.55);
   transform:translate(-50%,-50%);
 }
 body.cursor-ready .cursor-ring,body.cursor-ready .cursor-dot{opacity:1}
@@ -74,7 +74,7 @@ body.cursor-swipe .cursor-dot{opacity:0}
   opacity:0;transition:opacity .25s ease;
 }
 body.cursor-swipe .cursor-ring::after{content:'Свайп';opacity:1}
-body.cursor-link .cursor-ring{width:56px;height:56px;border-color:var(--bl);background:rgba(196,168,130,.12)}
+body.cursor-link .cursor-ring{width:40px;height:40px;border-color:rgba(196,168,130,.4);background:rgba(196,168,130,.05)}
 
 /* ─── Brush trail canvas ───────────────────────────────────────────── */
 #brush-canvas{
@@ -329,9 +329,11 @@ h1 em{
   line-height:1.85;font-weight:300;
 }
 .pain-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   gap:1.1rem;
+  max-width:820px;margin:0 auto;
 }
+@media(max-width:640px){.pain-grid{grid-template-columns:1fr}}
 .pain-card{
   background:rgba(255,255,255,.04);
   border:1px solid rgba(196,168,130,.14);
